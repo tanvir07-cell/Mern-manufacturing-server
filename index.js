@@ -26,6 +26,9 @@ async function run() {
     const partsCollection = client
       .db("mern-manufacturing-bike")
       .collection("parts");
+    const purchasedPartsCollection = client
+      .db("mern-manufacturing-bike")
+      .collection("purchases");
 
     app.get("/parts", async (req, res) => {
       const result = await partsCollection.find({}).toArray();
@@ -46,6 +49,13 @@ async function run() {
       const result = await partsCollection.findOne(filter);
       res.send(result);
       console.log(id);
+    });
+    // post to the database after purchasing:
+    app.post("/part", async (req, res) => {
+      const data = req.body;
+      const result = await purchasedPartsCollection.insertOne(data);
+      res.send(result);
+      console.log(data);
     });
   } finally {
   }
