@@ -106,6 +106,38 @@ async function run() {
       res.send({ result, token });
     });
 
+    // update a user:
+    app.put("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await usersCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+      console.log(user ? user : "pai nai");
+    });
+
+    // get updated user info api:
+    app.get("/user/:email", verifyJWT, async (req, res) => {
+      const decodedEmail = req.decoded.email;
+      const email = req.params.email;
+
+      if (email === decodedEmail) {
+        const query = { email: email };
+        const result = await usersCollection.find(query).toArray();
+        res.send(result);
+      } else {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+    });
+
     // post review by user:
     app.post("/add-review/:email", verifyJWT, async (req, res) => {
       // reviewsCollection
@@ -125,7 +157,7 @@ async function run() {
       }
     });
 
-    app.get("/get-review", verifyJWT, async (req, res) => {
+    app.get("/get-review", async (req, res) => {
       const result = await reviewsCollection.find({}).toArray();
       res.send(result);
     });
