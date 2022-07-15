@@ -84,6 +84,20 @@ async function run() {
       console.log(data);
     });
 
+    // get to the purchase items through users email address:
+    app.get("/orders-part/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const decodedEmail = req.decoded.email;
+
+      if (email === decodedEmail) {
+        const filter = { email: email };
+        const result = await purchasedPartsCollection.find(filter).toArray();
+        res.send(result);
+      } else {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+    });
+
     // post user to the database after login and get a jwt token:
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
