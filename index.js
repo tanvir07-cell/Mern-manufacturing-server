@@ -1,6 +1,7 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const express = require("express");
+const bodyParser = require("body-parser");
 const app = express();
 var jwt = require("jsonwebtoken");
 const cors = require("cors");
@@ -18,9 +19,16 @@ const cors = require("cors");
 // app.use(cors({ origin: "*" }));
 
 const port = process.env.PORT || 5000;
-app.use(express.json());
+// app.use(express.json());
+app.use(bodyParser.json());
 
-app.use(cors());
+// app.use(cors());
+const corsConfig = {
+  origin: true,
+  credentials: true,
+};
+app.use(cors(corsConfig));
+app.options("*", cors(corsConfig));
 
 // verify Jwt token:
 
