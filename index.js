@@ -240,6 +240,6 @@ app.get("/", (req, res) => {
   res.send(`This is the mern manufacturing server site`);
 });
 
-app.listen(port, () => {
-  console.log(`The web server is listening on port ${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`The web server is listening on port ${port}`);
+// });
