@@ -206,7 +206,7 @@ async function run() {
     });
 
     // post review by user:
-    app.post("/add-review/:email", async (req, res) => {
+    app.post("/add-review/:email", verifyJWT, async (req, res) => {
       // reviewsCollection
       const email = req.params.email;
       const decodedEmail = req.decoded.email;
