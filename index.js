@@ -145,17 +145,16 @@ async function run() {
     });
 
     // get updated user info api:
-    app.get("/user/:email", verifyJWT, async (req, res) => {
-      const decodedEmail = req.decoded.email;
+    app.get("/user/:email", async (req, res) => {
+      // const decodedEmail = req.decoded.email;
       const email = req.params.email;
 
-      if (email === decodedEmail) {
-        const query = { email: email };
-        const result = await usersCollection.find(query).toArray();
-        res.send(result);
-      } else {
-        return res.status(403).send({ message: "forbidden access" });
-      }
+      const query = { email: email };
+      const result = await usersCollection.find(query).toArray();
+      res.send(result);
+      // } else {
+      //   return res.status(403).send({ message: "forbidden access" });
+      // }
     });
 
     // get all users:
