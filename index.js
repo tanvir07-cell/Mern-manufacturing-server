@@ -7,13 +7,15 @@ const cors = require("cors");
 
 // middleware:
 // app.use(cors());
-app.use(express.json());
-const corsConfig = {
-  origin: true,
-  credentials: true,
-};
-app.use(cors(corsConfig));
-app.options("*", cors(corsConfig));
+// app.use(express.json());
+// const corsConfig = {
+//   origin: true,
+//   credentials: true,
+// };
+// app.use(cors(corsConfig));
+// app.options("*", cors(corsConfig));
+
+app.use(cors({ origin: "*" }));
 
 const port = process.env.PORT || 5000;
 
