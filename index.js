@@ -6,8 +6,14 @@ var jwt = require("jsonwebtoken");
 const cors = require("cors");
 
 // middleware:
-app.use(cors());
+// app.use(cors());
 app.use(express.json());
+const corsConfig = {
+  origin: true,
+  credentials: true,
+};
+app.use(cors(corsConfig));
+app.options("*", cors(corsConfig));
 
 const port = process.env.PORT || 5000;
 
