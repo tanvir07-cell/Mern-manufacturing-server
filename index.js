@@ -206,22 +206,22 @@ async function run() {
     });
 
     // post review by user:
-    app.post("/add-review/:email", verifyJWT, async (req, res) => {
+    app.post("/add-review/:email", async (req, res) => {
       // reviewsCollection
       const email = req.params.email;
-      const decodedEmail = req.decoded.email;
+      // const decodedEmail = req.decoded.email;
       //if requested user and decodedEmail both are same:
 
-      if (email === decodedEmail) {
-        const body = req.body;
-        // if user doesn't add any star then not to pass this database:
-        if (body?.ratingNumber > 0) {
-          const result = await reviewsCollection.insertOne(body);
-          return res.send(result);
-        }
-      } else {
-        return res.status(403).send({ message: "forbidden access" });
+      // if (email === decodedEmail) {
+      const body = req.body;
+      // if user doesn't add any star then not to pass this database:
+      if (body?.ratingNumber > 0) {
+        const result = await reviewsCollection.insertOne(body);
+        return res.send(result);
       }
+      // } else {
+      //   return res.status(403).send({ message: "forbidden access" });
+      // }
     });
 
     app.get("/get-review", async (req, res) => {
