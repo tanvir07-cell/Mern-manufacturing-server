@@ -15,9 +15,11 @@ const cors = require("cors");
 // app.use(cors(corsConfig));
 // app.options("*", cors(corsConfig));
 
-app.use(cors({ origin: "*" }));
+// app.use(cors({ origin: "*" }));
 
-const port = process.env.PORT || 5000;
+// const port = process.env.PORT || 5000;
+
+app.use(cors());
 
 // verify Jwt token:
 
