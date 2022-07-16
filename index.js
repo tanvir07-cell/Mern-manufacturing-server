@@ -152,6 +152,52 @@ async function run() {
       }
     });
 
+    // get all users:
+    app.get("/user", verifyJWT, async (req, res) => {
+      const result = await usersCollection.find({}).toArray();
+      res.send(result);
+    });
+
+    // admin middleWare (check user is admin or not):
+    // const verifyAdmin = async (req, res, next) => {
+    //   const adminEmail = req.decoded.email;
+    //   const adminAccount = await usersCollection.findOne({ email: adminEmail });
+
+    //   if (adminAccount.role === "admin") {
+    //     next();
+    //   } else {
+    //     res.status(403).send({ message: "Forbidden Access" });
+    //   }
+    // };
+
+    //  which user is admin & get this admin using custom hook in client side:
+    app.get("/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = await usersCollection.findOne({ email: email });
+      const isAdmin = user.role === "admin";
+      res.send({ admin: isAdmin });
+    });
+
+    // an admin makes an another user as an admin and update this user as an admin in database:
+
+    app.put("/user/admin/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      // an admin make which user  as an admin:
+      const adminEmail = req.decoded.email;
+      const adminAccount = await usersCollection.findOne({ email: adminEmail });
+      if (adminAccount.role === "admin") {
+        const filter = { email: email };
+
+        const updateDoc = {
+          $set: { role: "admin" },
+        };
+        const result = await usersCollection.updateOne(filter, updateDoc);
+        res.send(result);
+      } else {
+        res.status(403).send({ message: "Forbidden Access" });
+      }
+    });
+
     // post review by user:
     app.post("/add-review/:email", verifyJWT, async (req, res) => {
       // reviewsCollection
