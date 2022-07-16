@@ -147,16 +147,16 @@ async function run() {
     });
 
     // get updated user info api:
-    app.get("/user/:email", async (req, res) => {
-      // const decodedEmail = req.decoded.email;
+    app.get("/user/:email", verifyJWT, async (req, res) => {
+      const decodedEmail = req.decoded.email;
       const email = req.params.email;
-
-      const query = { email: email };
-      const result = await usersCollection.find(query).toArray();
-      res.send(result);
-      // } else {
-      //   return res.status(403).send({ message: "forbidden access" });
-      // }
+      if (email === decodedEmail) {
+        const query = { email: email };
+        const result = await usersCollection.find(query).toArray();
+        res.send(result);
+      } else {
+        return res.status(403).send({ message: "forbidden access" });
+      }
     });
 
     // get all users:
@@ -209,19 +209,19 @@ async function run() {
     app.post("/add-review/:email", async (req, res) => {
       // reviewsCollection
       const email = req.params.email;
-      // const decodedEmail = req.decoded.email;
+      const decodedEmail = req.decoded.email;
       //if requested user and decodedEmail both are same:
 
-      // if (email === decodedEmail) {
-      const body = req.body;
-      // if user doesn't add any star then not to pass this database:
-      if (body?.ratingNumber > 0) {
-        const result = await reviewsCollection.insertOne(body);
-        return res.send(result);
+      if (email === decodedEmail) {
+        const body = req.body;
+        // if user doesn't add any star then not to pass this database:
+        if (body?.ratingNumber > 0) {
+          const result = await reviewsCollection.insertOne(body);
+          return res.send(result);
+        }
+      } else {
+        return res.status(403).send({ message: "forbidden access" });
       }
-      // } else {
-      //   return res.status(403).send({ message: "forbidden access" });
-      // }
     });
 
     app.get("/get-review", async (req, res) => {
