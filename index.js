@@ -192,7 +192,7 @@ async function run() {
     app.get("/admin/:email", async (req, res) => {
       const email = req.params.email;
       const user = await usersCollection.findOne({ email: email });
-      const isAdmin = user.role === "admin";
+      const isAdmin = user?.role === "admin";
       res.send({ admin: isAdmin });
     });
 
@@ -203,7 +203,7 @@ async function run() {
       // an admin make which user  as an admin:
       const adminEmail = req.decoded.email;
       const adminAccount = await usersCollection.findOne({ email: adminEmail });
-      if (adminAccount.role === "admin") {
+      if (adminAccount?.role === "admin") {
         const filter = { email: email };
 
         const updateDoc = {
