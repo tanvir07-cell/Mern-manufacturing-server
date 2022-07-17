@@ -6,6 +6,9 @@ const app = express();
 var jwt = require("jsonwebtoken");
 const cors = require("cors");
 
+// for stripe:
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
 // middleware:
 // app.use(cors());
 // app.use(express.json());
@@ -74,6 +77,9 @@ async function run() {
     const reviewsCollection = client
       .db("mern-manufacturing-bike")
       .collection("reviews");
+    const paymentsCollection = client
+      .db("mern-manufacturing-bike")
+      .collection("payments");
 
     // const adminAddedProductsCollection = client
     //   .db("mern-manufacturing-bike")
@@ -268,6 +274,38 @@ async function run() {
       const query = { _id: ObjectId(id) };
       const result = await purchasedPartsCollection.findOne(query);
       res.send(result);
+    });
+
+    // for payment intent post api:
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+      const service = req.body;
+      const price = service.price;
+      const amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({ clientSecret: paymentIntent.client_secret });
+    });
+
+    // AFTER SUCCESSFULLY PAYMENT THEN UPDATE THE purchasedPartsCollection WITH paid:true && also passes transaction's info in the newly created purchasedPartsCollection
+    app.patch("/pay-orders/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const payment = req.body;
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId,
+        },
+      };
+      const result = await paymentsCollection.insertOne(payment);
+      const updateOrder = await purchasedPartsCollection.updateOne(
+        filter,
+        updatedDoc
+      );
+      res.send(updateOrder);
     });
   } finally {
   }
