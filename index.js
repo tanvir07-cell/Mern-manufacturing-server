@@ -75,6 +75,10 @@ async function run() {
       .db("mern-manufacturing-bike")
       .collection("reviews");
 
+    // const adminAddedProductsCollection = client
+    //   .db("mern-manufacturing-bike")
+    //   .collection("addProducts");
+
     app.get("/parts", async (req, res) => {
       const result = await partsCollection.find({}).toArray();
       res.send(result);
@@ -177,16 +181,17 @@ async function run() {
     });
 
     // admin middleWare (check user is admin or not):
-    // const verifyAdmin = async (req, res, next) => {
-    //   const adminEmail = req.decoded.email;
-    //   const adminAccount = await usersCollection.findOne({ email: adminEmail });
-
-    //   if (adminAccount.role === "admin") {
-    //     next();
-    //   } else {
-    //     res.status(403).send({ message: "Forbidden Access" });
-    //   }
-    // };
+    const verifyAdmin = async (req, res, next) => {
+      const admin = req.decoded.email;
+      const adminAccount = await usersCollection.findOne({
+        email: admin,
+      });
+      if (adminAccount.role === "admin") {
+        next();
+      } else {
+        res.status(403).send({ message: "Forbidden access" });
+      }
+    };
 
     //  which user is admin & get this admin using custom hook in client side:
     app.get("/admin/:email", async (req, res) => {
@@ -198,22 +203,16 @@ async function run() {
 
     // an admin makes an another user as an admin and update this user as an admin in database:
 
-    app.put("/user/admin/:email", verifyJWT, async (req, res) => {
+    app.put("/user/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
       const email = req.params.email;
       // an admin make which user  as an admin:
-      const adminEmail = req.decoded.email;
-      const adminAccount = await usersCollection.findOne({ email: adminEmail });
-      if (adminAccount?.role === "admin") {
-        const filter = { email: email };
+      const filter = { email: email };
 
-        const updateDoc = {
-          $set: { role: "admin" },
-        };
-        const result = await usersCollection.updateOne(filter, updateDoc);
-        res.send(result);
-      } else {
-        res.status(403).send({ message: "Forbidden Access" });
-      }
+      const updateDoc = {
+        $set: { role: "admin" },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result);
     });
 
     // post review by user:
@@ -237,6 +236,37 @@ async function run() {
 
     app.get("/get-review", async (req, res) => {
       const result = await reviewsCollection.find({}).toArray();
+      res.send(result);
+    });
+
+    // admin can post or added product api:
+    app.post("/add-product", verifyJWT, verifyAdmin, async (req, res) => {
+      const data = req.body;
+      const result = await partsCollection.insertOne(data);
+      res.send(result);
+    });
+    app.put(
+      "/user/remove-admin/:email",
+      verifyJWT,
+      verifyAdmin,
+      async (req, res) => {
+        const email = req.params.email;
+        // an admin make which user  remove an admin:
+        const filter = { email: email };
+
+        const updateDoc = {
+          $set: { role: "user" },
+        };
+        const result = await usersCollection.updateOne(filter, updateDoc);
+        res.send(result);
+      }
+    );
+
+    // get a order item for payment:
+    app.get("/orders/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await purchasedPartsCollection.findOne(query);
       res.send(result);
     });
   } finally {
