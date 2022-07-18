@@ -127,6 +127,22 @@ async function run() {
       }
     });
 
+    // now delete the purchase items api for user:
+    app.delete("/orders-part/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const decodedEmail = req.decoded.email;
+      // get the current email:
+      const email = req.headers.email;
+
+      if (email === decodedEmail) {
+        const deletedProduct = { _id: ObjectId(id) };
+        const result = await purchasedPartsCollection.deleteOne(deletedProduct);
+        res.send(result);
+      } else {
+        res.status(403).send({ message: "Forbidden Access" });
+      }
+    });
+
     // post user to the database after login and get a jwt token:
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
@@ -307,6 +323,27 @@ async function run() {
       );
       res.send(updateOrder);
     });
+
+    // for manage all order by admin:
+    app.get("/manage-orders", verifyJWT, async (req, res) => {
+      const result = await purchasedPartsCollection.find({}).toArray();
+      res.send(result);
+    });
+
+    app.delete(
+      "/delete-order/:id",
+      verifyJWT,
+      verifyAdmin,
+
+      async (req, res) => {
+        const id = req.params.id;
+
+        const result = await purchasedPartsCollection.deleteOne({
+          _id: ObjectId(id),
+        });
+        res.send(result);
+      }
+    );
   } finally {
   }
 }
