@@ -6,6 +6,10 @@ const app = express();
 var jwt = require("jsonwebtoken");
 const cors = require("cors");
 
+// for mailgun smtp service:
+const nodemailer = require("nodemailer");
+const mg = require("nodemailer-mailgun-transport");
+
 // for stripe:
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
@@ -32,6 +36,45 @@ const corsConfig = {
 };
 app.use(cors(corsConfig));
 app.options("*", cors(corsConfig));
+
+const auth = {
+  auth: {
+    api_key: "a19196dea392fdbe09f9e420c0b9ac80-787e6567-e737d84b",
+    domain: "sandbox8d96d6ea2b0645db9d0508c5815ad3b6.mailgun.org",
+  },
+};
+
+const nodemailerMailgun = nodemailer.createTransport(mg(auth));
+function sendPaymentEmail(payment) {
+  const { transactionId, productId, email } = payment;
+
+  const sendEmail = {
+    from: "tr9836859@gmail.com",
+    to: email,
+    subject: `Hey! ${email} see your Payment Description`,
+    text: `Hey! ${email} see your Payment Description`,
+    html: `
+      <div>
+        <p> Hello ${email}, </p>
+        <h3>Your Payment ID : ${transactionId} </h3>
+        <h4>Your Product ID : ${productId}</h4>
+       
+        <h3>Our Address</h3>
+        <p>Staff-Quatar,Demra-Dhaka</p>
+        <p>Bangladesh</p>
+        
+      </div>
+    `,
+  };
+
+  nodemailerMailgun.sendMail(sendEmail, (err, info) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(info);
+    }
+  });
+}
 
 // verify Jwt token:
 
@@ -321,7 +364,8 @@ async function run() {
         filter,
         updatedDoc
       );
-      res.send(updateOrder);
+      sendPaymentEmail(payment);
+      res.send({ updateOrder, result });
     });
 
     // for manage all order by admin:
@@ -349,6 +393,33 @@ async function run() {
 }
 
 run().catch(console.dir);
+
+// const email = {
+//   from: "myemail@example.com",
+//   to: "tanvir15-14402@diu.edu.bd", // An array if you have multiple recipients.
+
+//   subject: "Hey you, awesome!",
+
+//   //You can use "html:" to send HTML email content. It's magic!
+//   html: `
+//   <b>Wow Big powerful letters</b>
+//   <h1>Learning Web Development</h1>
+//   `,
+//   //You can use "text:" to send plain-text content. It's oldschool!
+//   text: "Mailgun rocks, pow pow!",
+// };
+
+// app.post("/pay-email", (req, res) => {
+//   // nodemailerMailgun.sendMail(email, (err, info) => {
+//   //   if (err) {
+//   //     console.log(err);
+//   //   } else {
+//   //     console.log(info);
+//   //   }
+//   // });
+
+//   res.send({ message: "Email sending..." });
+// });
 
 app.get("/", (req, res) => {
   res.send(`This is the mern manufacturing server site`);
